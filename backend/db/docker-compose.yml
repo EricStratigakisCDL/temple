@@ -1,0 +1,24 @@
+name: temple-db
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: temple-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-temple}
+      POSTGRES_USER: ${DB_USER:-temple}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-temple}
+    ports:
+      - "${DB_PORT:-5435}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./seed.sql:/docker-entrypoint-initdb.d/01-seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-temple} -d ${DB_NAME:-temple}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  pgdata:

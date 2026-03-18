@@ -1,0 +1,46 @@
+apiVersion: v1
+metadata:
+    name: temple
+    id: temple
+    description: Kitchen sink fullstack template app
+    labels: {}
+    owner: eric.stratigakis@compassdigital.io
+    team: data_extraction_services
+capabilities:
+    - id: backend
+      name: Backend
+      type: backend-container
+      source: ./backend
+      cpuSize: 4
+      memSize: 8
+      desiredCount: 1
+      network:
+        endpointResourceID: temple-backend-endpoint
+        basePath: /
+      environment:
+        RDS_CREDENTIALS_SECRET_ID: ""
+        DB_HOST: ""
+        DB_PORT: "5432"
+        DB_NAME: temple
+        DB_USER: postgres
+        FRONTEND_URL: https://dev.temple.compassdigitaldata.io
+        BACKEND_URL: https://dev.templeapi.compassdigitaldata.io
+    - id: web
+      name: web
+      type: single-page-app
+      source: ./web
+      environment:
+        API_URL: https://dev.templeapi.compassdigitaldata.io
+        FRONTEND_URL: https://dev.temple.compassdigitaldata.io
+      network:
+        endpointResourceID: temple-frontend-endpoint
+        basePath: /
+resources:
+  - id: temple-backend-endpoint
+    type: backend-endpoint
+    domain: compassdigitaldata.io
+    subdomain: templeapi
+  - id: temple-frontend-endpoint
+    type: frontend-endpoint
+    domain: compassdigitaldata.io
+    subdomain: temple
