@@ -10,7 +10,6 @@ export default defineConfig({
     proxy: {
       "/auth": "http://localhost:8004",
       "/api": "http://localhost:8004",
-      "/users": "http://localhost:8004",
       "/health": "http://localhost:8004",
     },
   },

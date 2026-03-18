@@ -48,9 +48,19 @@ else:
 
 
 def seed_db() -> None:
+    import bcrypt
+
     seed_sql = (_DIR / "seed.sql").read_text()
     with _cursor() as cur:
         cur.execute(seed_sql)
+
+    # Hash any plaintext seed passwords (those not starting with $2b$)
+    with _cursor() as cur:
+        cur.execute("SELECT id, password FROM users WHERE password NOT LIKE '$2b$%%'")
+        rows = cur.fetchall()
+        for row in rows:
+            hashed = bcrypt.hashpw(row["password"].encode(), bcrypt.gensalt()).decode()
+            cur.execute("UPDATE users SET password = %s WHERE id = %s", (hashed, row["id"]))
 
 
 def get_connection_string() -> str:
@@ -86,8 +96,8 @@ def reset_db() -> None:
 
     with _cursor() as cur:
         cur.execute("""
-            DROP TABLE IF EXISTS items               CASCADE;
-            DROP TABLE IF EXISTS users               CASCADE;
+            DROP TABLE IF EXISTS access_requests CASCADE;
+            DROP TABLE IF EXISTS users           CASCADE;
             DROP FUNCTION IF EXISTS update_updated_at() CASCADE;
         """)
 
@@ -127,8 +137,8 @@ def provision_rds(
         if drop_existing:
             print("Dropping existing tables …")
             cur.execute("""
-                DROP TABLE IF EXISTS items               CASCADE;
-                DROP TABLE IF EXISTS users               CASCADE;
+                DROP TABLE IF EXISTS access_requests CASCADE;
+                DROP TABLE IF EXISTS users           CASCADE;
                 DROP FUNCTION IF EXISTS update_updated_at() CASCADE;
             """)
             conn.commit()

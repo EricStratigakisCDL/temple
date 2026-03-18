@@ -1,12 +1,10 @@
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
-  UserCircleIcon,
-  Logout01Icon,
-  UserIcon,
-  Home01Icon,
-  Menu01Icon,
-} from "@hugeicons/core-free-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
+  UserCircle,
+  SignOut,
+  User,
+  UsersThree,
+} from "@phosphor-icons/react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,10 +18,18 @@ import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { apiUrl } from "@/lib/api";
 
+export type NavPage = "users" | "profile";
+
 export function Navbar() {
-  const { user, logout } = useAuth();
+  const { user, token, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+
+  const isAdmin = user?.role === "admin";
+
+  const currentPage: NavPage = location.pathname.startsWith("/users")
+    ? "users"
+    : "profile";
 
   if (!user) return null;
 
@@ -32,48 +38,32 @@ export function Navbar() {
       <div className="flex h-14 items-center px-4 md:px-8">
         <div className="flex items-center gap-2">
           <Link
-            to="/"
-            className="flex items-center text-base font-semibold tracking-tight"
+            to={isAdmin ? "/users" : "/profile"}
+            className="flex items-center gap-1.5 text-base font-semibold tracking-tight"
           >
-            <img
-              src="/logo.svg"
-              alt="T"
-              className="h-6 w-6 rounded-md"
-            />
-            <span className="-ml-0.5">emple</span>
+            <span className="flex size-7 items-center justify-center rounded-md bg-primary text-xs font-bold text-primary-foreground">
+              T
+            </span>
+            <span>Temple</span>
           </Link>
         </div>
 
         <nav className="flex flex-1 items-center justify-center gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            asChild
-            className={cn(
-              location.pathname === "/" && "bg-muted text-foreground"
-            )}
-          >
-            <NavLink to="/" end>
-              <HugeiconsIcon icon={Home01Icon} size={16} />
-              Home
-            </NavLink>
-          </Button>
-
-          <div className="mx-1.5 h-4 w-px bg-border" />
-
-          <Button
-            variant="ghost"
-            size="sm"
-            asChild
-            className={cn(
-              location.pathname.startsWith("/items") && "bg-muted text-foreground"
-            )}
-          >
-            <NavLink to="/items">
-              <HugeiconsIcon icon={Menu01Icon} size={16} />
-              Items
-            </NavLink>
-          </Button>
+          {isAdmin && (
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
+              className={cn(
+                currentPage === "users" && "bg-muted text-foreground"
+              )}
+            >
+              <Link to="/users">
+                <UsersThree size={16} weight={currentPage === "users" ? "fill" : "regular"} />
+                Users
+              </Link>
+            </Button>
+          )}
         </nav>
 
         <div className="flex items-center">
@@ -88,7 +78,7 @@ export function Navbar() {
                     onError={(e) => { e.currentTarget.style.display = "none"; }}
                   />
                 ) : (
-                  <HugeiconsIcon icon={UserCircleIcon} size={24} />
+                  <UserCircle size={24} weight="light" />
                 )}
                 <span className="sr-only">Account menu</span>
               </Button>
@@ -104,7 +94,7 @@ export function Navbar() {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="cursor-pointer" onSelect={() => navigate("/profile")}>
-                <HugeiconsIcon icon={UserIcon} size={16} />
+                <User size={16} />
                 Profile
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -115,7 +105,7 @@ export function Navbar() {
                   await logout();
                 }}
               >
-                <HugeiconsIcon icon={Logout01Icon} size={16} />
+                <SignOut size={16} />
                 Log out
               </DropdownMenuItem>
             </DropdownMenuContent>

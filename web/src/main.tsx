@@ -6,15 +6,21 @@ import "./index.css"
 import App from "./App.tsx"
 import { ThemeProvider } from "@/components/theme-provider.tsx"
 import { AuthProvider } from "@/contexts/AuthContext.tsx"
+import { QueryProvider } from "@/components/query-provider.tsx"
+import { TooltipProvider } from "@/components/ui/tooltip.tsx"
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
-      <AuthProvider>
-        <ThemeProvider>
-          <App />
-        </ThemeProvider>
-      </AuthProvider>
+      <QueryProvider>
+        <AuthProvider>
+          <ThemeProvider>
+            <TooltipProvider>
+              <App />
+            </TooltipProvider>
+          </ThemeProvider>
+        </AuthProvider>
+      </QueryProvider>
     </BrowserRouter>
   </StrictMode>
 )

@@ -8,13 +8,17 @@ export default function DashboardLayout() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="text-muted-foreground">Loading…</p>
+        <p className="text-muted-foreground">Loading...</p>
       </div>
     );
   }
 
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (user.role === "new") {
+    return <Navigate to="/awaiting-approval" replace />;
   }
 
   return (

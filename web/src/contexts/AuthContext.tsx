@@ -12,7 +12,8 @@ export interface User {
   id: number;
   email: string;
   name: string;
-  role: "admin" | "manager" | "reviewer";
+  role: "admin" | "manager" | "reviewer" | "new";
+  status: "active" | "disabled";
   avatar_url?: string | null;
 }
 
@@ -21,7 +22,9 @@ interface AuthState {
   token: string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  signup: (email: string, password: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthState | null>(null);
@@ -63,6 +66,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(data.user);
   }, []);
 
+  const signup = useCallback(async (email: string, password: string, name: string) => {
+    const res = await fetch(apiUrl("/auth/signup"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, name }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: "Signup failed" }));
+      throw new Error(err.detail ?? "Signup failed");
+    }
+
+    const data = await res.json();
+    localStorage.setItem(TOKEN_KEY, data.token);
+    localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+    setToken(data.token);
+    setUser(data.user);
+  }, []);
+
   const logout = useCallback(async () => {
     if (token) {
       await fetch(apiUrl("/auth/logout"), {
@@ -76,8 +98,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, [token]);
 
+  const refreshUser = useCallback(async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(apiUrl("/auth/me"), {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+      const freshUser = await res.json();
+      localStorage.setItem(USER_KEY, JSON.stringify(freshUser));
+      setUser(freshUser);
+    } catch {
+      // silently fail
+    }
+  }, [token]);
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, signup, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );
